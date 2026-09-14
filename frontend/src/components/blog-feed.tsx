@@ -23,11 +23,17 @@ export default function BlogFeed() {
     axios
       .get(import.meta.env.VITE_API_PATH + categoryEndpoint)
       .then((response) => {
-        setPosts(response.data);
+        // Ensure response.data is an array
+        const postsArray = Array.isArray(response.data) 
+          ? response.data 
+          : response.data?.posts || response.data?.data || [];
+        setPosts(postsArray);
         setLoading(false);
       })
       .catch((error) => {
-        console.error(error);
+        console.error('Error fetching posts:', error);
+        setPosts([]); // Set empty array on error
+        setLoading(false);
       });
   }, [selectedCategory]);
 
@@ -35,10 +41,15 @@ export default function BlogFeed() {
     axios
       .get(import.meta.env.VITE_API_PATH + '/api/posts/latest')
       .then((response) => {
-        setLatestPosts(response.data);
+        // Ensure response.data is an array
+        const latestArray = Array.isArray(response.data) 
+          ? response.data 
+          : response.data?.posts || response.data?.data || [];
+        setLatestPosts(latestArray);
       })
       .catch((error) => {
-        console.error(error);
+        console.error('Error fetching latest posts:', error);
+        setLatestPosts([]); // Set empty array on error
       });
   }, []);
 
@@ -55,7 +66,7 @@ export default function BlogFeed() {
               : `Posts related to "${selectedCategory}"`}
           </h1>
           <div className="flex flex-col gap-6">
-            {posts.length === 0 || loading == true
+            {posts.length === 0 || loading
               ? Array(5)
                   .fill(0)
                   .map((_, index) => <FeaturedPostCardSkeleton key={index} />)
