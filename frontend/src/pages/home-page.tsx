@@ -5,16 +5,24 @@ import Post from '@/types/post-type';
 import { PostCardSkeleton } from '@/components/skeletons/post-card-skeleton';
 import Header from '@/layouts/header-layout';
 import axiosInstance from '@/helpers/axios-instance';
+
 function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        setLoading(true);
         const res = await axiosInstance.get('/api/posts');
-        setPosts(res.data);
+        // Ensure res.data is an array
+        const postsArray = Array.isArray(res.data) ? res.data : [];
+        setPosts(postsArray);
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching posts:', error);
+        setPosts([]); // Set empty array on error
+      } finally {
+        setLoading(false);
       }
     };
     fetchPosts();
@@ -29,7 +37,7 @@ function HomePage() {
           All Posts
         </h1>
         <div className="flex flex-wrap">
-          {posts.length === 0
+          {loading || posts.length === 0
             ? Array(8)
                 .fill(0)
                 .map((_, index) => <PostCardSkeleton key={index} />)
